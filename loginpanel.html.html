@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu</title>
+  <style>
+    body {
+      background:#001d3d; color:#fff; font-family:Arial; 
+      display:flex; justify-content:center; align-items:center; 
+      height:100vh; flex-direction:column;
+    }
+    h1 { margin-bottom:20px; }
+    #countdown {
+      font-size:20px;
+      font-weight:bold;
+      margin-top:20px;
+    }
+    .warning {
+      color:red;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      50% { opacity:0; }
+    }
+    button {
+      margin-top:20px;
+      padding:10px 20px;
+      border:none;
+      background:#ffd60a;
+      color:#000;
+      font-weight:bold;
+      border-radius:5px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 Xin chào, <span id="user"></span></h1>
+  <p>Key: <span id="key"></span></p>
+  <div id="countdown"></div>
+  <button onclick="logout()">Đăng xuất</button>
+
+  <script>
+    const currentKey = JSON.parse(localStorage.getItem("currentKey") || "null");
+    if (!currentKey) {
+      alert("Bạn chưa login!");
+      window.location = "login.html";
+    }
+
+    document.getElementById("user").innerText = currentKey.email || "Người dùng";
+    document.getElementById("key").innerText = currentKey.hash;
+
+    function updateCountdown() {
+      const now = new Date();
+      const expire = new Date(currentKey.expireAt);
+      const diff = expire - now;
+
+      if (diff <= 0) {
+        alert("⌛ Key đã hết hạn, vui lòng login lại!");
+        localStorage.removeItem("currentKey");
+        window.location = "login.html";
+        return;
+      }
+
+      const hours = Math.floor(diff / 1000 / 60 / 60);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      const countdownEl = document.getElementById("countdown");
+      countdownEl.innerText = `⏳ Thời gian còn lại: ${hours}h ${minutes}m ${seconds}s`;
+
+      // cảnh báo khi <= 30s
+      if (diff <= 30000) {
+        countdownEl.classList.add("warning");
+      }
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    function logout() {
+      localStorage.removeItem("currentKey");
+      window.location = "login.html";
+    }
+  </script>
+</body>
+</html>
