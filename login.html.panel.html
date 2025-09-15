@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <style>
+    body { background:#001d3d; display:flex; justify-content:center; align-items:center; height:100vh; color:#fff; font-family:Arial; }
+    .login-box { background:#003566; padding:20px; border-radius:10px; width:300px; text-align:center; }
+    input { width:100%; padding:8px; margin:10px 0; border:none; border-radius:4px; }
+    button { padding:10px; width:100%; border:none; background:#ffd60a; color:#000; font-weight:bold; border-radius:4px; cursor:pointer; }
+    .error { color:red; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Nhập Key</h2>
+    <input type="text" id="keyInput" placeholder="Nhập key của bạn">
+    <button onclick="checkKey()">Xác nhận</button>
+    <p id="msg" class="error"></p>
+  </div>
+
+  <script>
+    let keys = JSON.parse(localStorage.getItem("keys") || "[]");
+    let logs = JSON.parse(localStorage.getItem("logs") || "[]");
+
+    async function getIp() {
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        return data.ip;
+      } catch(e) { return "unknown"; }
+    }
+
+    async function checkKey() {
+      const keyInput = document.getElementById("keyInput").value.trim();
+      const now = new Date();
+      const key = keys.find(k => k.hash === keyInput);
+
+      if(!key) {
+        document.getElementById("msg").innerText = "❌ Key không hợp lệ!";
+        return;
+      }
+
+      if(new Date(key.expireAt) < now) {
+        document.getElementById("msg").innerText = "⌛ Key đã hết hạn!";
+        return;
+      }
+
+      const ip = await getIp();
+
+      // Lưu log đăng nhập
+      logs.push({
+        email: key.email,
+        ip: ip,
+        key: key.hash,
+        time: now.toISOString()
+      });
+      localStorage.setItem("logs", JSON.stringify(logs));
+
+      // Lưu key hiện tại để menu.html kiểm tra
+      localStorage.setItem("currentKey", JSON.stringify(key));
+
+      alert("✅ Đăng nhập thành công!");
+      window.location = "menu.html";
+    }
+  </script>
+</body>
+</html>
